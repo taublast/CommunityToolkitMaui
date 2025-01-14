@@ -33,7 +33,11 @@ public static class AppBuilderExtensions
 			h.AddHandler<SemanticOrderView, SemanticOrderViewHandler>();
 		});
 
-		NavigationBar.RemapForControls();
+		if (OperatingSystem.IsAndroidVersionAtLeast(21))
+		{
+			NavigationBar.RemapForControls();
+		}
+
 		return builder;
 	}
 }

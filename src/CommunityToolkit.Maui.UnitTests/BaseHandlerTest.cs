@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.UnitTests.Mocks;
+using CommunityToolkit.Maui.Views;
 
 namespace CommunityToolkit.Maui.UnitTests;
 
@@ -58,8 +59,7 @@ public abstract class BaseHandlerTest : BaseTest
 		var mockPageViewModel = new MockPageViewModel();
 		var mockPopup = new MockSelfClosingPopup(mockPageViewModel, new());
 
-		PopupService.ClearViewModelToViewMappings();
-		PopupService.AddTransientPopup(mockPopup, mockPageViewModel, appBuilder.Services);
+		PopupService.AddPopup(mockPopup, mockPageViewModel, appBuilder.Services, ServiceLifetime.Transient);
 		#endregion
 
 		foreach (var service in transientServicesToRegister)
@@ -77,7 +77,5 @@ public abstract class BaseHandlerTest : BaseTest
 
 		application.Handler = new ApplicationHandlerStub();
 		application.Handler.SetMauiContext(new HandlersContextStub(mauiApp.Services));
-
-		CreateElementHandler<MockPopupHandler>(mockPopup);
 	}
 }
