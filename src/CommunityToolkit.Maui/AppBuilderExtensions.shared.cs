@@ -22,6 +22,7 @@ public static class AppBuilderExtensions
 		builder.UseMauiCommunityToolkitCore(null);
 
 		builder.Services.AddSingleton<IPopupService, PopupService>();
+		builder.Services.AddSingleton<PopupLifecycleController>();
 
 		// Invokes options for both `CommunityToolkit.Maui` and `CommunityToolkit.Maui.Core`
 		options?.Invoke(new Options(builder));
@@ -29,11 +30,9 @@ public static class AppBuilderExtensions
 		builder.ConfigureMauiHandlers(h =>
 		{
 			h.AddHandler<DrawingView, DrawingViewHandler>();
-			h.AddHandler<Popup, PopupHandler>();
 			h.AddHandler<SemanticOrderView, SemanticOrderViewHandler>();
 		});
 
-		Popup.RemapForControls();
 		NavigationBar.RemapForControls();
 		return builder;
 	}
