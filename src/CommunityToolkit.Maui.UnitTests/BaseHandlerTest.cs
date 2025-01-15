@@ -59,7 +59,7 @@ public abstract class BaseHandlerTest : BaseTest
 		var mockPageViewModel = new MockPageViewModel();
 		var mockPopup = new MockSelfClosingPopup(mockPageViewModel, new());
 
-		PopupService.AddPopup(mockPopup, mockPageViewModel, appBuilder.Services, ServiceLifetime.Transient);
+		PopupService.AddPopup(mockPopup, mockPageViewModel, appBuilder.Services, ServiceLifetime.Singleton);
 		#endregion
 
 		foreach (var service in transientServicesToRegister)
