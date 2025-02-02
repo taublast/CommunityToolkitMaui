@@ -23,6 +23,11 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	public static readonly BindableProperty ColorProperty = BindableProperty.Create(nameof(Color), typeof(Color), typeof(Popup), Colors.LightGray, propertyChanged: OnColorChanged);
 
 	/// <summary>
+	/// Backing BindableProperty for the <see cref="IgnoreSafeArea"/> property.
+	/// </summary>
+	public static readonly BindableProperty IgnoreSafeAreaProperty = BindableProperty.Create(nameof(Color), typeof(bool), typeof(Popup), false);
+	
+	/// <summary>
 	///  Backing BindableProperty for the <see cref="Size"/> property.
 	/// </summary>
 	public static readonly BindableProperty SizeProperty = BindableProperty.Create(nameof(Size), typeof(Size), typeof(Popup), default(Size));
@@ -146,6 +151,15 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	{
 		get => (Size)GetValue(SizeProperty);
 		set => SetValue(SizeProperty, value);
+	}
+
+	/// <summary>
+	/// Controls whether the popup should respect safe insets like status bar etc. 
+	/// </summary>
+	public bool IgnoreSafeArea
+	{
+		get => (bool)GetValue(IgnoreSafeAreaProperty);
+		set => SetValue(IgnoreSafeAreaProperty, value);
 	}
 
 	/// <summary>
@@ -348,6 +362,7 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 		((IPopup)this).OnClosed(result);
 		((IResourceDictionary)resources).ValuesChanged -= OnResourcesChanged;
 
+		RemoveBinding(Popup.IgnoreSafeAreaProperty);
 		RemoveBinding(Popup.ContentProperty);
 		RemoveBinding(Popup.ColorProperty);
 		RemoveBinding(Popup.SizeProperty);

@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Android.Content;
 using Android.Graphics.Drawables;
+using Android.OS;
 using Android.Views;
 using CommunityToolkit.Maui.Core.Handlers;
 using Microsoft.Maui.Platform;
@@ -29,9 +31,10 @@ public static class PopupExtensions
 		var window = GetWindow(dialog);
 
 		var windowManager = window.WindowManager;
-		var statusBarHeight = GetStatusBarHeight(windowManager);
-		var navigationBarHeight = GetNavigationBarHeight(windowManager);
-		var windowSize = GetWindowSize(windowManager);
+		
+		var statusBarHeight = GetStatusBarHeight(dialog.Context); 
+		var navigationBarHeight = GetNavigationBarHeight(windowManager); 
+		var windowSize = GetWindowSize(dialog.Context, windowManager, popup.IgnoreSafeArea);
 		var rotation = windowManager.DefaultDisplay?.Rotation ?? throw new InvalidOperationException("DefaultDisplay cannot be null");
 		navigationBarHeight = windowSize.Height < windowSize.Width ? (rotation == SurfaceOrientation.Rotation270 ? navigationBarHeight : 0) : 0;
 
@@ -127,9 +130,40 @@ public static class PopupExtensions
 
 		var decorView = (ViewGroup)window.DecorView;
 
-		var windowSize = GetWindowSize(windowManager);
+		//window.SetBackgroundDrawable(new ColorDrawable(Android.Graphics.Color.Blue));
+
+		var windowSize = GetWindowSize(context, windowManager, popup.IgnoreSafeArea);
 		int width = LayoutParams.WrapContent;
 		int height = LayoutParams.WrapContent;
+
+	
+
+		if (dialog.Window != null)
+		{
+
+			//if (_insetsListener == null)
+			//{
+			//    _insetsListener = new DialogInsetsListener();
+			//    dialog.Window.DecorView.SetOnApplyWindowInsetsListener(_insetsListener);
+			//}
+
+
+			// Remove any padding from the decorView
+			decorView.SetPadding(0, 0, 0, 0);
+
+			// Remove padding and margins from child views
+			for (int i = 0; i < decorView.ChildCount; i++)
+			{
+				var child = decorView.GetChildAt(i);
+				child?.SetPadding(0, 0, 0, 0);
+				if (child?.LayoutParameters is ViewGroup.MarginLayoutParams marginParams)
+				{
+					marginParams.SetMargins(0, 0, 0, 0);
+					child.LayoutParameters = marginParams;
+				}
+			}
+
+		}
 
 		if (popup.Size.IsZero)
 		{
@@ -201,10 +235,11 @@ public static class PopupExtensions
 					}
 				}
 
-				window.SetLayout(width, height);
-
 				width = width == LayoutParams.WrapContent ? decorView.MeasuredWidth : width;
 				height = height == LayoutParams.WrapContent ? decorView.MeasuredHeight : height;
+
+				window.SetLayout(width, height);
+				//window.SetLayout(-1, -1);
 			}
 			else
 			{
@@ -280,7 +315,7 @@ public static class PopupExtensions
 	static Window GetWindow(in Dialog dialog) =>
 		dialog.Window ?? throw new InvalidOperationException($"{nameof(Dialog)}.{nameof(Dialog.Window)} cannot be null");
 
-	static Size GetWindowSize([NotNull] IWindowManager? windowManager)
+	static Size GetWindowSize(Context context, [NotNull] IWindowManager? windowManager, bool isFullscreen)
 	{
 		ArgumentNullException.ThrowIfNull(windowManager);
 
@@ -336,6 +371,12 @@ public static class PopupExtensions
 									: (realSize.Y - displaySize.Y);
 		}
 
+		if (isFullscreen)
+		{
+			//navigationBarHeight = 0;
+			statusBarHeight = -GetStatusBarHeight(context);
+		}
+
 		windowWidth -= windowHeight < windowWidth
 			? navigationBarHeight
 			: 0;
@@ -389,6 +430,19 @@ public static class PopupExtensions
 		}
 
 		return navigationBarHeight;
+	}
+
+	static int GetStatusBarHeight(Context context)
+	{
+		if (context.Resources != null)
+		{
+			int resourceId = context.Resources.GetIdentifier("status_bar_height", "dimen", "android");
+			if (resourceId > 0)
+			{
+				return context.Resources.GetDimensionPixelSize(resourceId);
+			}
+		}
+		return 0;
 	}
 
 	static int GetStatusBarHeight(IWindowManager? windowManager)

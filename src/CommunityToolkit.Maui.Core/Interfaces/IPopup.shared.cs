@@ -29,6 +29,11 @@ public interface IPopup : IElement, IVisualTreeElement, IAsynchronousHandler
 	LayoutAlignment HorizontalOptions { get; }
 
 	/// <summary>
+	/// Controls whether the popup should respect safe insets like status bar etc. 
+	/// </summary>
+	bool IgnoreSafeArea { get; }
+
+	/// <summary>
 	/// Gets the CanBeDismissedByTappingOutsideOfPopup property.
 	/// </summary>
 	bool CanBeDismissedByTappingOutsideOfPopup { get; }

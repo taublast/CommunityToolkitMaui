@@ -15,6 +15,9 @@ namespace CommunityToolkit.Maui.Core.Views;
 /// <exception cref="ArgumentNullException">If <paramref name="mauiContext"/> is null an exception will be thrown. </exception>
 public class MauiPopup(IMauiContext mauiContext) : UIViewController
 {
+
+	internal bool CanBeDismissedByTappingInternal;
+
 	readonly IMauiContext mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
 
 	/// <summary>
@@ -47,10 +50,11 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 		View.Superview.Layer.CornerRadius = 0.0f;
 		View.Superview.Layer.MasksToBounds = false;
 
-		if (PresentationController is not null)
-		{
-			SetShadowView(PresentationController.ContainerView);
-		}
+		//todo implement for fullscreen
+		//if (PresentationController is not null)
+		//{
+		//	SetShadowView(PresentationController.ContainerView);
+		//}
 
 		SetElementSize(new Size(View.Bounds.Width, View.Bounds.Height));
 
@@ -100,7 +104,8 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 #endif
 
 		VirtualView = element;
-		ModalPresentationStyle = UIModalPresentationStyle.Popover;
+		ModalPresentationStyle = UIModalPresentationStyle.OverFullScreen;
+		ModalTransitionStyle = UIModalTransitionStyle.CrossDissolve;
 
 		_ = View ?? throw new InvalidOperationException($"{nameof(View)} cannot be null.");
 		_ = VirtualView ?? throw new InvalidOperationException($"{nameof(VirtualView)} cannot be null.");
@@ -144,34 +149,44 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 	{
 		Control = func(virtualView);
 
-		SetPresentationController();
-
 		_ = View ?? throw new InvalidOperationException($"{nameof(View)} cannot be null.");
 		SetView(View, Control);
 
 		_ = ViewController ?? throw new InvalidOperationException($"{nameof(ViewController)} cannot be null.");
+
 		AddToCurrentPageViewController(ViewController);
+
+		if (virtualView.Handler != null)
+		{
+
+			var dimView = new UIView(this.View.Bounds)
+			{
+				AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
+				BackgroundColor = UIColor.Black.ColorWithAlpha(0.4f)
+			};
+
+			if (virtualView.CanBeDismissedByTappingOutsideOfPopup)
+			{
+				var tapGesture = new UITapGestureRecognizer(tapEvent =>
+				{
+					if (CanBeDismissedByTappingInternal)
+					{
+						DismissViewController(true, null);
+						_ = VirtualView ?? throw new InvalidOperationException($"{nameof(VirtualView)} cannot be null.");
+						VirtualView.Handler?.Invoke(nameof(IPopup.OnDismissedByTappingOutsideOfPopup));
+					}
+				})
+				{
+					CancelsTouchesInView = false
+				};
+				dimView.AddGestureRecognizer(tapGesture);
+			}
+
+			this.View.InsertSubview(dimView, 0);
+		}
 
 		this.SetSize(virtualView);
 		this.SetLayout(virtualView);
-	}
-
-	static void SetShadowView(in UIView target)
-	{
-		if (target.Class.Name is "_UICutoutShadowView")
-		{
-			target.RemoveFromSuperview();
-		}
-
-		if (target.Class.Name is "_UIPopoverDimmingView")
-		{
-			target.BackgroundColor = UIColor.Black.ColorWithAlpha(0.4f);
-		}
-
-		foreach (var view in target.Subviews)
-		{
-			SetShadowView(view);
-		}
 	}
 
 	void SetView(UIView view, IPlatformViewHandler control)
@@ -191,46 +206,9 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 		}
 	}
 
-	void SetPresentationController()
-	{
-		var popOverDelegate = new PopoverDelegate();
-		popOverDelegate.PopoverDismissedEvent += HandlePopoverDelegateDismissed;
-
-		var presentationController = (UIPopoverPresentationController)(PresentationController ?? throw new InvalidOperationException($"{nameof(PresentationController)} cannot be null."));
-		presentationController.SourceView = ViewController?.View ?? throw new InvalidOperationException($"{nameof(ViewController.View)} cannot be null.");
-
-		presentationController.Delegate = popOverDelegate;
-	}
-
-	[MemberNotNull(nameof(VirtualView))]
-	void HandlePopoverDelegateDismissed(object? sender, UIPresentationController e)
-	{
-		_ = VirtualView ?? throw new InvalidOperationException($"{nameof(VirtualView)} cannot be null.");
-		VirtualView.Handler?.Invoke(nameof(IPopup.OnDismissedByTappingOutsideOfPopup));
-	}
-
 	void AddToCurrentPageViewController(UIViewController viewController)
 	{
 		viewController.PresentViewController(this, true, null);
 	}
 
-	sealed class PopoverDelegate : UIPopoverPresentationControllerDelegate
-	{
-		readonly WeakEventManager popoverDismissedEventManager = new();
-
-		public event EventHandler<UIPresentationController> PopoverDismissedEvent
-		{
-			add => popoverDismissedEventManager.AddEventHandler(value);
-			remove => popoverDismissedEventManager.RemoveEventHandler(value);
-		}
-
-		public override UIModalPresentationStyle GetAdaptivePresentationStyle(UIPresentationController forPresentationController) =>
-			UIModalPresentationStyle.None;
-
-		public override UIModalPresentationStyle GetAdaptivePresentationStyle(UIPresentationController controller, UITraitCollection traitCollection) =>
-			UIModalPresentationStyle.None;
-
-		public override void DidDismiss(UIPresentationController presentationController) =>
-			popoverDismissedEventManager.HandleEvent(this, presentationController, nameof(PopoverDismissedEvent));
-	}
 }

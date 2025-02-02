@@ -1,7 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Android.App;
 using Android.Content;
+using Android.Graphics.Drawables;
+using Android.OS;
 using Android.Views;
 using Microsoft.Maui.Platform;
+using Org.Apache.Commons.Logging;
 using AView = Android.Views.View;
 
 namespace CommunityToolkit.Maui.Core.Views;
@@ -20,9 +24,53 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 	/// <param name="mauiContext">An instance of <see cref="IMauiContext"/>.</param>
 	/// <exception cref="ArgumentNullException">If <paramref name="mauiContext"/> is null an exception will be thrown. </exception>
 	public MauiPopup(Context context, IMauiContext mauiContext)
-		: base(context)
+		: base(context, Android.Resource.Style.ThemeTranslucentNoTitleBarFullScreen)
 	{
+		RequestWindowFeature((int)WindowFeatures.NoTitle);
+
+		if (Window != null)
+		{
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // Android 11+
+			{
+				Window.SetDecorFitsSystemWindows(false);
+
+				var insetsController = Window.InsetsController;
+				if (insetsController != null)
+				{
+					insetsController.Hide(WindowInsets.Type.StatusBars());
+					insetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+				}
+			}
+			else
+			{
+				Window.AddFlags(WindowManagerFlags.LayoutNoLimits);
+				Window.AddFlags(WindowManagerFlags.Fullscreen);
+				Window.AddFlags(WindowManagerFlags.LayoutInScreen);
+				Window.ClearFlags(WindowManagerFlags.ForceNotFullscreen);
+			}
+
+			//var check = Window.DecorView.RootWindowInsets;
+
+			//Window.DecorView.SetOnApplyWindowInsetsListener(new DialogInsetsListener());
+		}
+
 		this.mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
+	}
+
+	internal class DialogInsetsListener : Java.Lang.Object, Android.Views.View.IOnApplyWindowInsetsListener
+	{
+		 
+		public WindowInsets OnApplyWindowInsets(Android.Views.View v, WindowInsets insets)
+		{
+			var returnInsets = insets.ReplaceSystemWindowInsets(
+				insets.SystemWindowInsetLeft,
+				0,
+				insets.SystemWindowInsetRight,
+				insets.SystemWindowInsetBottom
+			);
+
+			return returnInsets;
+		}
 	}
 
 	/// <summary>

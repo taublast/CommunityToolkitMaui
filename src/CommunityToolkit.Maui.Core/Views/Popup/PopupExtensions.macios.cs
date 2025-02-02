@@ -7,13 +7,11 @@ namespace CommunityToolkit.Maui.Core.Views;
 /// </summary>
 public static class PopupExtensions
 {
-	static readonly nfloat defaultPopoverLayoutMargin = 0.0001f;
 
 #if MACCATALYST
 	// https://github.com/CommunityToolkit/Maui/pull/1361#issuecomment-1736487174
 	static nfloat popupMargin = 18f;
 #endif
-
 
 	/// <summary>
 	/// Method to update the <see cref="IPopup.Size"/> of the Popup.
@@ -24,16 +22,7 @@ public static class PopupExtensions
 	{
 		ArgumentNullException.ThrowIfNull(popup.Content);
 
-		CGRect frame;
-
-		if (mauiPopup.ViewController?.View?.Window is UIWindow window)
-		{
-			frame = window.Frame;
-		}
-		else
-		{
-			frame = UIScreen.MainScreen.Bounds;
-		}
+		CGRect frame = UIScreen.MainScreen.Bounds;
 
 		CGSize currentSize;
 
@@ -84,11 +73,6 @@ public static class PopupExtensions
 	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
 	public static void SetBackgroundColor(this MauiPopup mauiPopup, in IPopup popup)
 	{
-		if (mauiPopup.PopoverPresentationController is not null && Equals(popup.Color, Colors.Transparent))
-		{
-			mauiPopup.PopoverPresentationController.PopoverBackgroundViewType = typeof(TransparentPopoverBackgroundView);
-		}
-
 		if (mauiPopup.Control is null)
 		{
 			return;
@@ -110,10 +94,7 @@ public static class PopupExtensions
 	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
 	public static void SetCanBeDismissedByTappingOutsideOfPopup(this MauiPopup mauiPopup, in IPopup popup)
 	{
-		if (OperatingSystem.IsIOSVersionAtLeast(13))
-		{
-			mauiPopup.ModalInPresentation = !popup.CanBeDismissedByTappingOutsideOfPopup;
-		}
+		mauiPopup.CanBeDismissedByTappingInternal = popup.CanBeDismissedByTappingOutsideOfPopup;
 	}
 
 	/// <summary>
@@ -123,128 +104,112 @@ public static class PopupExtensions
 	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
 	public static void SetLayout(this MauiPopup mauiPopup, in IPopup popup)
 	{
-		if (mauiPopup.View is null)
+		if (mauiPopup.View is null || popup.Content is null)
 		{
 			return;
 		}
 
-		CGRect frame;
-
-		if (mauiPopup.ViewController?.View?.Window is UIWindow window)
-		{
-			frame = window.Frame;
-		}
-		else
-		{
-			frame = UIScreen.MainScreen.Bounds;
-		}
-
-		if (mauiPopup.PopoverPresentationController is null)
-		{
-			throw new InvalidOperationException("PopoverPresentationController cannot be null");
-		}
+		CGRect frame = UIScreen.MainScreen.Bounds;
 
 #if MACCATALYST
-		var titleBarHeight = mauiPopup.ViewController?.NavigationController?.NavigationBar.Frame.Y ?? 0;
-		var navigationBarHeight = mauiPopup.ViewController?.NavigationController?.NavigationBar.Frame.Size.Height ?? 0;
+    var titleBarHeight = mauiPopup.ViewController?.NavigationController?.NavigationBar.Frame.Y ?? 0;
+    var navigationBarHeight = mauiPopup.ViewController?.NavigationController?.NavigationBar.Frame.Size.Height ?? 0;
 #endif
 
 		if (popup.Anchor is null)
 		{
-			var isFlowDirectionRightToLeft = popup.Content?.FlowDirection == FlowDirection.RightToLeft;
-			var horizontalOptionsPositiveNegativeMultiplier = isFlowDirectionRightToLeft ? (nfloat)(-1) : (nfloat)1;
-
-			nfloat originY;
-			if (mauiPopup.PreferredContentSize.Height < frame.Height)
+			// Calculate intrinsic content size.
+			CGSize contentSize = mauiPopup.PreferredContentSize;
+			if (!double.IsNaN(popup.Content.Width) && popup.HorizontalOptions != Microsoft.Maui.Primitives.LayoutAlignment.Fill)
 			{
-				originY = popup.VerticalOptions switch
-				{
+				contentSize.Width = (nfloat)popup.Content.Width;
+			}
+			if (!double.IsNaN(popup.Content.Height) && popup.VerticalOptions != Microsoft.Maui.Primitives.LayoutAlignment.Fill)
+			{
+				contentSize.Height = (nfloat)popup.Content.Height;
+			}
+
 #if MACCATALYST
-					Microsoft.Maui.Primitives.LayoutAlignment.Start => mauiPopup.PreferredContentSize.Height / 2 - (titleBarHeight + navigationBarHeight - popupMargin),
-					Microsoft.Maui.Primitives.LayoutAlignment.End => frame.Height - mauiPopup.PreferredContentSize.Height / 2 - (titleBarHeight + navigationBarHeight + popupMargin),
-					Microsoft.Maui.Primitives.LayoutAlignment.Center or Microsoft.Maui.Primitives.LayoutAlignment.Fill => frame.GetMidY() - (titleBarHeight + navigationBarHeight),
+        bool isPortrait = frame.Height >= frame.Width;
+        nfloat additionalVerticalOffset = isPortrait
+            ? (titleBarHeight + navigationBarHeight)
+            : (titleBarHeight + navigationBarHeight) / 2;
 #else
-					Microsoft.Maui.Primitives.LayoutAlignment.Start => mauiPopup.PreferredContentSize.Height / 2,
-					Microsoft.Maui.Primitives.LayoutAlignment.End => frame.Height - (mauiPopup.PreferredContentSize.Height / 2),
-					Microsoft.Maui.Primitives.LayoutAlignment.Center or Microsoft.Maui.Primitives.LayoutAlignment.Fill => frame.GetMidY(),
+			nfloat additionalVerticalOffset = 0;
 #endif
-					_ => throw new NotSupportedException($"{nameof(Microsoft.Maui.Primitives.LayoutAlignment)} {popup.VerticalOptions} is not yet supported")
-				};
-			}
-			else
-			{
-				originY = -frame.GetMidY();
-			}
 
-			nfloat originX;
-			if (mauiPopup.PreferredContentSize.Width < frame.Width)
+			// Compute safe area margins for each side.
+			nfloat marginLeft = 0, marginTop = 0, marginRight = 0, marginBottom = 0;
+			if (!popup.IgnoreSafeArea)
 			{
-				originX = popup.HorizontalOptions switch
+				if (mauiPopup.View?.Window is UIWindow window)
 				{
-#if MACCATALYST
-					Microsoft.Maui.Primitives.LayoutAlignment.Start => (frame.Width - frame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - (mauiPopup.PreferredContentSize.Width - mauiPopup.PreferredContentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - (popupMargin - popupMargin * horizontalOptionsPositiveNegativeMultiplier),
-					Microsoft.Maui.Primitives.LayoutAlignment.End => (frame.Width + frame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - (mauiPopup.PreferredContentSize.Width + mauiPopup.PreferredContentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - (popupMargin + popupMargin * horizontalOptionsPositiveNegativeMultiplier),
-					Microsoft.Maui.Primitives.LayoutAlignment.Center or Microsoft.Maui.Primitives.LayoutAlignment.Fill => frame.GetMidX() - mauiPopup.PreferredContentSize.Width / 2 - popupMargin,
-#else
-					Microsoft.Maui.Primitives.LayoutAlignment.Start => (frame.Width - frame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - (mauiPopup.PreferredContentSize.Width / 2 - mauiPopup.PreferredContentSize.Width / 2 * horizontalOptionsPositiveNegativeMultiplier) / 2,
-					Microsoft.Maui.Primitives.LayoutAlignment.End => (frame.Width + frame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - (mauiPopup.PreferredContentSize.Width / 2 + mauiPopup.PreferredContentSize.Width / 2 * horizontalOptionsPositiveNegativeMultiplier) / 2,
-					Microsoft.Maui.Primitives.LayoutAlignment.Center or Microsoft.Maui.Primitives.LayoutAlignment.Fill => frame.GetMidX(),
-#endif
-					_ => throw new NotSupportedException($"{nameof(Microsoft.Maui.Primitives.LayoutAlignment)} {popup.VerticalOptions} is not yet supported")
-				};
-			}
-			else
-			{
-				originX = -frame.GetMidX();
+					marginLeft = window.SafeAreaInsets.Left;
+					marginTop = window.SafeAreaInsets.Top;
+					marginRight = window.SafeAreaInsets.Right;
+					marginBottom = window.SafeAreaInsets.Bottom;
+				}
 			}
 
-			if (mauiPopup.ViewController?.PopoverPresentationController is UIPopoverPresentationController popoverPresentationController)
+#if MACCATALYST
+        marginLeft += popupMargin;
+        marginTop += popupMargin;
+        marginRight += popupMargin;
+        marginBottom += popupMargin;
+#endif
+
+			// Compute the horizontal position based on the HorizontalOptions.
+			nfloat x = popup.HorizontalOptions switch
 			{
-				mauiPopup.PopoverPresentationController.SourceView = popoverPresentationController.SourceView;
+				Microsoft.Maui.Primitives.LayoutAlignment.Start => marginLeft,
+				Microsoft.Maui.Primitives.LayoutAlignment.End => frame.Width - contentSize.Width - marginRight,
+				Microsoft.Maui.Primitives.LayoutAlignment.Center or Microsoft.Maui.Primitives.LayoutAlignment.Fill => (frame.Width - contentSize.Width) / 2,
+				_ => (frame.Width - contentSize.Width) / 2,
+			};
+
+			// Compute the vertical position based on the VerticalOptions.
+			nfloat y = popup.VerticalOptions switch
+			{
+				Microsoft.Maui.Primitives.LayoutAlignment.Start => marginTop + additionalVerticalOffset,
+				Microsoft.Maui.Primitives.LayoutAlignment.End => frame.Height - contentSize.Height - marginBottom - additionalVerticalOffset,
+				Microsoft.Maui.Primitives.LayoutAlignment.Center or Microsoft.Maui.Primitives.LayoutAlignment.Fill => (frame.Height - contentSize.Height) / 2 - additionalVerticalOffset,
+				_ => (frame.Height - contentSize.Height) / 2,
+			};
+
+			if (mauiPopup.Control?.ViewController?.View is UIView contentView)
+			{
+				contentView.Frame = new CGRect(x, y, contentSize.Width, contentSize.Height);
 			}
-			mauiPopup.PopoverPresentationController.SourceRect = new CGRect(originX, originY, 0, 0);
-			mauiPopup.PopoverPresentationController.PermittedArrowDirections = 0;
-			// From the point of view of usability, the top, bottom, left, and right values of UIEdgeInsets cannot all be 0.
-			// If you specify 0 for the top, bottom, left, and right of UIEdgeInsets, the default margins will be added, so 
-			// specify a value as close to 0 here as possible.
-			mauiPopup.PopoverPresentationController.PopoverLayoutMargins = new UIEdgeInsets(defaultPopoverLayoutMargin, defaultPopoverLayoutMargin, defaultPopoverLayoutMargin, defaultPopoverLayoutMargin);
 		}
 		else
 		{
-			var view = popup.Anchor.ToPlatform(popup.Handler?.MauiContext ?? throw new InvalidOperationException($"{nameof(popup.Handler.MauiContext)} Cannot Be Null"));
+			//todo test this all on mac
+
+			/*
+			var view = popup.Anchor.ToPlatform(popup.Handler?.MauiContext ??
+				throw new InvalidOperationException($"{nameof(popup.Handler.MauiContext)} Cannot Be Null"));
 			mauiPopup.PopoverPresentationController.SourceView = view;
 			mauiPopup.PopoverPresentationController.SourceRect = view.Bounds;
+			*/
+
+			// If an anchor is provided, position the popup relative to the anchor.
+			var anchorView = popup.Anchor.ToPlatform(popup.Handler?.MauiContext
+														 ?? throw new InvalidOperationException($"{nameof(popup.Handler.MauiContext)} cannot be null"));
+
+			// Convert the anchor's frame to the coordinate space of the popup's main view.
+			if (anchorView.Superview != null)
+			{
+				var anchorFrame = anchorView.Superview.ConvertRectToView(anchorView.Frame, mauiPopup.View);
+
+				if (mauiPopup.Control?.ViewController?.View is UIView contentView)
+				{
+					// Center the content view on the anchor's center.
+					contentView.Center = new CoreGraphics.CGPoint(anchorFrame.GetMidX(), anchorFrame.GetMidY());
+				}
+			}
 		}
 	}
 
-	sealed class TransparentPopoverBackgroundView : UIPopoverBackgroundView
-	{
-		public TransparentPopoverBackgroundView(IntPtr handle) : base(handle)
-		{
-			BackgroundColor = Colors.Transparent.ToPlatform();
-			Alpha = 0.0f;
-		}
 
-		public override nfloat ArrowOffset { get; set; }
 
-		public override UIPopoverArrowDirection ArrowDirection { get; set; }
-
-		[Export("arrowHeight")]
-		static new float GetArrowHeight()
-		{
-			return 0f;
-		}
-
-		[Export("arrowBase")]
-		static new float GetArrowBase()
-		{
-			return 0f;
-		}
-
-		[Export("contentViewInsets")]
-		static new UIEdgeInsets GetContentViewInsets()
-		{
-			return UIEdgeInsets.Zero;
-		}
-	}
 }
