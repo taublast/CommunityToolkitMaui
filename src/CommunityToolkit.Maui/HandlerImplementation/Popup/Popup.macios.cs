@@ -34,10 +34,16 @@ public partial class Popup
 				Trace.TraceInformation($"Unable to set {nameof(BindableObject.BindingContext)} for {nameof(IPopup)}.{nameof(IPopup.Content)} because {nameof(IPopup)} implementation does not inherit from {nameof(BindableObject)}");
 			}
 
+			if (popupContent is Layout layout)
+			{
+				layout.IgnoreSafeArea = true;
+			}
 			var contentPage = new ContentPage
 			{
 				Content = popupContent
 			};
+			Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(contentPage, false);
+
 			var parent = virtualView.Parent as Element;
 			parent?.AddLogicalChild(contentPage);
 
