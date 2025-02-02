@@ -25,15 +25,19 @@ public static class PopupExtensions
 		CGRect frame = UIScreen.MainScreen.Bounds;
 
 		// If we're honoring safe areas, reduce the frame by the window's safe area insets.
-		if (!ignoreSafeArea && mauiPopup.View?.Window is UIWindow window)
+		if (!ignoreSafeArea)
 		{
+			if (mauiPopup.View?.Window is not UIWindow window)
+			{
+				window = new UIWindow(frame: frame);
+			}
+
 			frame = new CGRect(
 				frame.X + window.SafeAreaInsets.Left,
 				frame.Y + window.SafeAreaInsets.Top,
 				frame.Width - window.SafeAreaInsets.Left - window.SafeAreaInsets.Right,
 				frame.Height - window.SafeAreaInsets.Top - window.SafeAreaInsets.Bottom);
 		}
-
 #if MACCATALYST
 		// On MacCatalyst, further reduce the frame by the constant margin on all four sides.
 		frame = new CGRect(
@@ -42,6 +46,7 @@ public static class PopupExtensions
 			frame.Width - popupMargin * 2,
 			frame.Height - popupMargin * 2);
 #endif
+
 		return frame;
 	}
 
@@ -63,11 +68,20 @@ public static class PopupExtensions
 		{
 			if (double.IsNaN(popup.Content.Width) || double.IsNaN(popup.Content.Height))
 			{
-				var content = popup.Content.ToPlatform(
+				if (popup.Content.Handler == null)
+				{
+					_ = popup.Content.ToPlatform(
 					popup.Handler?.MauiContext ?? throw new InvalidOperationException($"{nameof(popup.Handler.MauiContext)} Cannot Be Null"));
-				var contentSize = content.SizeThatFits(new CGSize(
-					double.IsNaN(popup.Content.Width) ? adjustedFrame.Width : popup.Content.Width,
-					double.IsNaN(popup.Content.Height) ? adjustedFrame.Height : popup.Content.Height));
+				}
+
+				var contentSize = popup.Content.Measure(
+					double.IsNaN(popup.Content.Width) ? adjustedFrame.Width : popup.Content.Width, 
+					double.IsNaN(popup.Content.Height) ? adjustedFrame.Height : popup.Content.Height);
+
+				//var check = content.SizeThatFits(new CGSize(
+				//	double.IsNaN(popup.Content.Width) ? adjustedFrame.Width : popup.Content.Width,
+				//	double.IsNaN(popup.Content.Height) ? adjustedFrame.Height : popup.Content.Height));
+				
 				var width = contentSize.Width;
 				var height = contentSize.Height;
 
@@ -116,6 +130,8 @@ public static class PopupExtensions
 		// Get the adjusted frame based on safe areas (and MacCatalyst margins).
 		CGRect adjustedFrame = GetAdjustedFrame(mauiPopup, popup.IgnoreSafeArea);
 
+		popup.Content.Arrange(new Rect(0,0, adjustedFrame.Width, adjustedFrame.Height));
+		
 #if MACCATALYST
 		var titleBarHeight = mauiPopup.ViewController?.NavigationController?.NavigationBar.Frame.Y ?? 0;
 		var navigationBarHeight = mauiPopup.ViewController?.NavigationController?.NavigationBar.Frame.Size.Height ?? 0;
