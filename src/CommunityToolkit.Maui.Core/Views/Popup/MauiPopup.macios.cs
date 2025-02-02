@@ -50,12 +50,6 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 		View.Superview.Layer.CornerRadius = 0.0f;
 		View.Superview.Layer.MasksToBounds = false;
 
-		//todo implement for fullscreen
-		//if (PresentationController is not null)
-		//{
-		//	SetShadowView(PresentationController.ContainerView);
-		//}
-
 		SetElementSize(new Size(View.Bounds.Width, View.Bounds.Height));
 
 		if (VirtualView is not null)
