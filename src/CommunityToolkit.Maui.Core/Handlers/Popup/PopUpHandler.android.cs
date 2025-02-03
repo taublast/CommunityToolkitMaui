@@ -7,7 +7,7 @@ namespace CommunityToolkit.Maui.Core.Handlers;
 
 public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 {
-	internal AView? Container { get; set; }
+	internal AView? Content { get; set; }
 	internal int LastPopupWidth { get; set; }
 	internal int LastPopupHeight { get; set; }
 	internal double LastWindowWidth { get; set; }
@@ -92,15 +92,26 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	}
 
 	/// <summary>
+	/// Action that's triggered when the Popup <see cref="IPopup.BackgroundColor"/> property changes.
+	/// </summary>
+	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
+	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
+	public static void MapBackgroundColor(PopupHandler handler, IPopup view)
+	{
+		handler.PlatformView.SetBackgroundColor(view);
+	}
+
+	/// <summary>
 	/// Action that's triggered when the Popup <see cref="IPopup.Size"/> property changes.
 	/// </summary>
 	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
 	public static void MapSize(PopupHandler handler, IPopup view)
 	{
-		ArgumentNullException.ThrowIfNull(handler.Container);
+		ArgumentNullException.ThrowIfNull(handler.Content);
 
-		handler.PlatformView.SetSize(view, handler.Container, handler);
+		handler.PlatformView.SetFullScreen(view.IgnoreSafeArea);
+		handler.PlatformView.SetSize(view, handler.Content, handler);
 	}
 
 	/// <inheritdoc/>
@@ -115,11 +126,11 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	/// <inheritdoc/>
 	protected override void ConnectHandler(MauiPopup platformView)
 	{
-		Container = platformView.SetElement(VirtualView);
+		Content = platformView.SetElement(VirtualView);
 
-		if (Container is not null)
+		if (Content is not null)
 		{
-			Container.LayoutChange += OnLayoutChange;
+			Content.LayoutChange += OnLayoutChange;
 		}
 	}
 
@@ -128,9 +139,9 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	{
 		platformView.Dispose();
 
-		if (Container is not null)
+		if (Content is not null)
 		{
-			Container.LayoutChange -= OnLayoutChange;
+			Content.LayoutChange -= OnLayoutChange;
 		}
 	}
 
@@ -143,9 +154,9 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 
 	void OnLayoutChange(object? sender, EventArgs e)
 	{
-		if (VirtualView?.Handler?.PlatformView is Dialog dialog && Container is not null)
+		if (VirtualView?.Handler?.PlatformView is Dialog dialog && Content is not null)
 		{
-			PopupExtensions.SetSize(dialog, VirtualView, Container, this);
+			PopupExtensions.SetSize(dialog, VirtualView, Content, this);
 		}
 	}
 }

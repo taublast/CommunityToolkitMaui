@@ -72,6 +72,16 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
 	public static void MapColor(PopupHandler handler, IPopup view)
 	{
+		handler.PlatformView.SetColor(view);
+	}
+
+	/// <summary>
+	/// Action that's triggered when the Popup <see cref="IPopup.BackgroundColor"/> property changes.
+	/// </summary>
+	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
+	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
+	public static void MapBackgroundColor(PopupHandler handler, IPopup view)
+	{
 		handler.PlatformView.SetBackgroundColor(view);
 	}
 

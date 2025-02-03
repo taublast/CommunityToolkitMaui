@@ -1,16 +1,12 @@
-using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Maui.Core.Views;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Windows.UI.ViewManagement;
 
 namespace CommunityToolkit.Maui.Core.Handlers;
 
-public partial class PopupHandler : ElementHandler<IPopup, Popup>
+public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 {
+
 	/// <summary>
 	/// Action that's triggered when the Popup is Dismissed.
 	/// </summary>
@@ -44,11 +40,8 @@ public partial class PopupHandler : ElementHandler<IPopup, Popup>
 		parent.IsHitTestVisible = false;
 		handler.PlatformView.XamlRoot = view.GetWindow().Content?.Handler?.MauiContext?.GetPlatformWindow().Content.XamlRoot ?? throw new InvalidOperationException("Window Content cannot be null");
 		handler.PlatformView.IsHitTestVisible = true;
-		handler.PlatformView.IsOpen = true;
 
-		AddOverlayToWindow(view.GetWindow());
-
-		view.OnOpened();
+		handler.PlatformView.Show();
 	}
 
 
@@ -81,8 +74,7 @@ public partial class PopupHandler : ElementHandler<IPopup, Popup>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
 	public static void MapCanBeDismissedByTappingOutsideOfPopup(PopupHandler handler, IPopup view)
 	{
-		handler.PlatformView.IsLightDismissEnabled = view.CanBeDismissedByTappingOutsideOfPopup;
-		handler.PlatformView.LightDismissOverlayMode = LightDismissOverlayMode.Off;
+		handler.PlatformView.CanBeDismissedByTappingOutside = view.CanBeDismissedByTappingOutsideOfPopup;
 	}
 
 	/// <summary>
@@ -96,6 +88,16 @@ public partial class PopupHandler : ElementHandler<IPopup, Popup>
 	}
 
 	/// <summary>
+	/// Action that's triggered when the Popup <see cref="IPopup.BackgroundColor"/> property changes.
+	/// </summary>
+	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
+	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
+	public static void MapBackgroundColor(PopupHandler handler, IPopup view)
+	{
+		handler.PlatformView.SetBackgroundColor(view);
+	}
+
+	/// <summary>
 	/// Action that's triggered when the Popup <see cref="IPopup.Size"/> property changes.
 	/// </summary>
 	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
@@ -106,66 +108,34 @@ public partial class PopupHandler : ElementHandler<IPopup, Popup>
 	}
 
 	/// <inheritdoc/>
-	protected override void DisconnectHandler(Popup platformView)
+	protected override void DisconnectHandler(MauiPopup platformView)
 	{
 		if (VirtualView.Parent is null)
 		{
 			return;
 		}
 
+		platformView.SetElement(null);
+
 		ArgumentNullException.ThrowIfNull(VirtualView.Handler?.MauiContext);
 		var parent = VirtualView.Parent.ToPlatform(VirtualView.Handler.MauiContext);
 		parent.IsHitTestVisible = true;
-		platformView.IsOpen = false;
-		platformView.Closed -= OnClosed;
-		if (MauiContext is not null)
-		{
-			MauiContext.GetPlatformWindow().SizeChanged -= OnSizeChanged;
-		}
 	}
 
 	/// <inheritdoc/>
-	protected override Popup CreatePlatformElement()
+	protected override MauiPopup CreatePlatformElement()
 	{
-		var popup = new Popup();
-		return popup;
+		_ = MauiContext ?? throw new InvalidOperationException("MauiContext is null, please check your MauiApplication.");
+
+		return new MauiPopup(MauiContext);
 	}
 
 	/// <inheritdoc/>
-	protected override void ConnectHandler(Popup platformView)
+	protected override void ConnectHandler(MauiPopup platformView)
 	{
-		platformView.Closed += OnClosed;
-		platformView.ConfigureControl(VirtualView, MauiContext);
-		if (MauiContext is not null)
-		{
-			MauiContext.GetPlatformWindow().SizeChanged += OnSizeChanged;
-		}
+		_ = platformView.SetElement(VirtualView);
+
 		base.ConnectHandler(platformView);
 	}
 
-	static void AddOverlayToWindow(IWindow window)
-	{
-		var uiSetting = new UISettings();
-		var backgroundColor = uiSetting.GetColorValue(UIColorType.Background).ToColor();
-		window.AddOverlay(new PopupOverlay(window, backgroundColor.IsDark()
-													? Color.FromRgba(0, 0, 0, 153)
-													: Color.FromRgba(255, 255, 255, 153))); // 60% Opacity
-	}
-
-	void OnClosed(object? sender, object e)
-	{
-		if (!PlatformView.IsOpen && VirtualView.CanBeDismissedByTappingOutsideOfPopup)
-		{
-			VirtualView.Handler?.Invoke(nameof(IPopup.OnDismissedByTappingOutsideOfPopup));
-		}
-	}
-
-	void OnSizeChanged(object? sender, WindowSizeChangedEventArgs e)
-	{
-		if (VirtualView is not null)
-		{
-			PopupExtensions.SetSize(PlatformView, VirtualView, MauiContext);
-			PopupExtensions.SetLayout(PlatformView, VirtualView, MauiContext);
-		}
-	}
 }

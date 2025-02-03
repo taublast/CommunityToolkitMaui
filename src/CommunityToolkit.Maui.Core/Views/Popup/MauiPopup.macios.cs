@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.Maui.Core.Extensions;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Handlers;
+using Microsoft.Maui.Platform;
 
 namespace CommunityToolkit.Maui.Core.Views;
 
@@ -17,8 +18,19 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 {
 
 	internal bool CanBeDismissedByTappingInternal;
-
 	readonly IMauiContext mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
+	UIView? overlay;
+
+	/// <summary>
+	/// The native fullscreen overlay
+	/// </summary>
+	public UIView? Overlay
+	{
+		get
+		{
+			return overlay;
+		}
+	}
 
 	/// <summary>
 	/// An instance of the <see cref="PageHandler"/> that holds the <see cref="IPopup.Content"/>.
@@ -152,11 +164,10 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 
 		if (virtualView.Handler != null)
 		{
-
-			var dimView = new UIView(this.View.Bounds)
+			overlay = new UIView(this.View.Bounds)
 			{
 				AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
-				BackgroundColor = UIColor.Black.ColorWithAlpha(0.4f)
+				BackgroundColor = virtualView.BackgroundColor.ToPlatform()
 			};
 
 			if (virtualView.CanBeDismissedByTappingOutsideOfPopup)
@@ -173,10 +184,10 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 				{
 					CancelsTouchesInView = false
 				};
-				dimView.AddGestureRecognizer(tapGesture);
+				overlay.AddGestureRecognizer(tapGesture);
 			}
 
-			this.View.InsertSubview(dimView, 0);
+			this.View.InsertSubview(overlay, 0);
 		}
 
 		this.SetSize(virtualView);
@@ -196,7 +207,7 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 
 		if (VirtualView is not null)
 		{
-			this.SetBackgroundColor(VirtualView);
+			this.SetColor(VirtualView);
 		}
 	}
 

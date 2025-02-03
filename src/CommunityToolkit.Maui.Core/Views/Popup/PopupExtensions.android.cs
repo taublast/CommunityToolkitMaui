@@ -89,13 +89,23 @@ public static class PopupExtensions
 	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
 	public static void SetColor(this Dialog dialog, in IPopup popup)
 	{
-		if (popup.Color is null)
-		{
-			return;
-		}
-
+		var color = popup.Color ?? Colors.Transparent;
 		var window = GetWindow(dialog);
-		window.SetBackgroundDrawable(new ColorDrawable(popup.Color.ToPlatform(AColorRes.BackgroundLight, dialog.Context)));
+		window.SetBackgroundDrawable(new ColorDrawable(color.ToPlatform(AColorRes.BackgroundLight, dialog.Context)));
+	}
+
+	/// <summary>
+	/// Method to update the <see cref="IPopup.BackgroundColor"/> property.
+	/// </summary>
+	/// <param name="dialog">An instance of <see cref="Dialog"/>.</param>
+	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
+	public static void SetBackgroundColor(this MauiPopup dialog, in IPopup popup)
+	{
+		if (dialog.Overlay != null)
+		{
+			var color = popup.BackgroundColor ?? Colors.Transparent;
+			dialog.Overlay.SetBackgroundColor(color.ToPlatform());
+		}
 	}
 
 	/// <summary>

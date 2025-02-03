@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Android.App;
 using Android.Content;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
 using Microsoft.Maui.Platform;
-using Org.Apache.Commons.Logging;
 using AView = Android.Views.View;
 
 namespace CommunityToolkit.Maui.Core.Views;
@@ -16,6 +14,18 @@ namespace CommunityToolkit.Maui.Core.Views;
 public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 {
 	readonly IMauiContext mauiContext;
+	View? overlay;
+
+	/// <summary>
+	/// The native fullscreen overlay
+	/// </summary>
+	public View? Overlay
+	{
+		get
+		{
+			return overlay;
+		}
+	}
 
 	/// <summary>
 	/// Constructor of <see cref="MauiPopup"/>.
@@ -27,49 +37,58 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 		: base(context, Android.Resource.Style.ThemeTranslucentNoTitleBarFullScreen)
 	{
 		RequestWindowFeature((int)WindowFeatures.NoTitle);
+		this.mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
+	}
 
+	/// <summary>
+	/// Switch fullscreen mode on/off for native Dialog
+	/// </summary>
+	/// <param name="value"></param>
+	public void SetFullScreen(bool value)
+	{
 		if (Window != null)
 		{
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // Android 11+
+			if (value)
 			{
-				Window.SetDecorFitsSystemWindows(false);
-
-				var insetsController = Window.InsetsController;
-				if (insetsController != null)
+				if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // Android 11+
 				{
-					insetsController.Hide(WindowInsets.Type.StatusBars());
-					insetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+					Window.SetDecorFitsSystemWindows(false);
+
+					var insetsController = Window.InsetsController;
+					if (insetsController != null)
+					{
+						insetsController.Hide(WindowInsets.Type.StatusBars());
+						insetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+					}
+				}
+				else
+				{
+					Window.AddFlags(WindowManagerFlags.LayoutNoLimits);
+					Window.AddFlags(WindowManagerFlags.Fullscreen);
+					Window.AddFlags(WindowManagerFlags.LayoutInScreen);
+					Window.ClearFlags(WindowManagerFlags.ForceNotFullscreen);
 				}
 			}
 			else
 			{
-				Window.AddFlags(WindowManagerFlags.LayoutNoLimits);
-				Window.AddFlags(WindowManagerFlags.Fullscreen);
-				Window.AddFlags(WindowManagerFlags.LayoutInScreen);
-				Window.ClearFlags(WindowManagerFlags.ForceNotFullscreen);
+				if (Build.VERSION.SdkInt >= BuildVersionCodes.R)  
+				{
+					Window.SetDecorFitsSystemWindows(true);
+
+					var insetsController = Window.InsetsController;
+					if (insetsController != null)
+					{
+						insetsController.Show(WindowInsets.Type.StatusBars());
+					}
+				}
+				else
+				{
+					Window.ClearFlags(WindowManagerFlags.LayoutNoLimits);
+					Window.ClearFlags(WindowManagerFlags.Fullscreen);
+					Window.ClearFlags(WindowManagerFlags.LayoutInScreen);
+					Window.AddFlags(WindowManagerFlags.ForceNotFullscreen);
+				}
 			}
-
-			//var check = Window.DecorView.RootWindowInsets;
-
-			//Window.DecorView.SetOnApplyWindowInsetsListener(new DialogInsetsListener());
-		}
-
-		this.mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
-	}
-
-	internal class DialogInsetsListener : Java.Lang.Object, Android.Views.View.IOnApplyWindowInsetsListener
-	{
-		 
-		public WindowInsets OnApplyWindowInsets(Android.Views.View v, WindowInsets insets)
-		{
-			var returnInsets = insets.ReplaceSystemWindowInsets(
-				insets.SystemWindowInsetLeft,
-				0,
-				insets.SystemWindowInsetRight,
-				insets.SystemWindowInsetBottom
-			);
-
-			return returnInsets;
 		}
 	}
 
@@ -88,7 +107,7 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 
 		VirtualView = element;
 
-		if (TryCreateContainer(VirtualView, out var container))
+		if (TryCreateContent(VirtualView, out var container))
 		{
 			SubscribeEvents();
 		}
@@ -101,11 +120,44 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 	/// </summary>
 	public override void Show()
 	{
-		base.Show();
-
 		_ = VirtualView ?? throw new InvalidOperationException($"{nameof(VirtualView)} cannot be null");
 
+		var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+		var decor = activity?.Window?.DecorView as ViewGroup;
+		if (decor != null && overlay == null)
+		{
+			overlay = new View(Context)
+			{
+				LayoutParameters = new ViewGroup.LayoutParams(
+					ViewGroup.LayoutParams.MatchParent,
+					ViewGroup.LayoutParams.MatchParent)
+			};
+			var color = VirtualView.BackgroundColor ?? Colors.Transparent;
+			overlay.SetBackgroundColor(color.ToPlatform());
+			decor.AddView(overlay);
+		}
+
+		base.Show();
+
 		VirtualView.OnOpened();
+	}
+
+	/// <summary>
+	/// Is dismissing the Popup.
+	/// </summary>
+	public override void Dismiss()
+	{
+		if (overlay != null)
+		{
+			var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+			var decor = activity?.Window?.DecorView as ViewGroup;
+			if (decor != null && overlay != null)
+			{
+				decor.RemoveView(overlay);
+			}
+		}
+
+		base.Dismiss();
 	}
 
 	/// <summary>
@@ -126,6 +178,7 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 	public void CleanUp()
 	{
 		VirtualView = null;
+		overlay = null;
 	}
 
 	/// <inheritdoc/>
@@ -155,7 +208,7 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 		return !this.IsDisposed() && base.OnTouchEvent(e);
 	}
 
-	bool TryCreateContainer(in IPopup popup, [NotNullWhen(true)] out AView? container)
+	bool TryCreateContent(in IPopup popup, [NotNullWhen(true)] out AView? container)
 	{
 		container = null;
 

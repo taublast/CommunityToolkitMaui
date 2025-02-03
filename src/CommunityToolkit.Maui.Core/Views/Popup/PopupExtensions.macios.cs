@@ -196,11 +196,26 @@ public static class PopupExtensions
 	}
 
 	/// <summary>
-	/// Method to update the <see cref="IPopup.Color"/> of the Popup.
+	/// Method to update the <see cref="IPopup.BackgroundColor"/> of the Popup.
 	/// </summary>
 	/// <param name="mauiPopup">An instance of <see cref="MauiPopup"/>.</param>
 	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
 	public static void SetBackgroundColor(this MauiPopup mauiPopup, in IPopup popup)
+	{
+		if (mauiPopup.Overlay==null)
+		{
+			return;
+		}
+		var color = popup.BackgroundColor ?? Colors.Transparent;
+		mauiPopup.Overlay.BackgroundColor = color.ToPlatform();
+	}
+
+	/// <summary>
+	/// Method to update the <see cref="IPopup.Color"/> of the Popup.
+	/// </summary>
+	/// <param name="mauiPopup">An instance of <see cref="MauiPopup"/>.</param>
+	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
+	public static void SetColor(this MauiPopup mauiPopup, in IPopup popup)
 	{
 		if (mauiPopup.Control is null)
 		{

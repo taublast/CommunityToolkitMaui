@@ -12,6 +12,7 @@ public partial class PopupHandler
 	{
 		[nameof(IPopup.Anchor)] = MapAnchor,
 		[nameof(IPopup.Color)] = MapColor,
+		[nameof(IPopup.BackgroundColor)] = MapBackgroundColor,
 		[nameof(IPopup.Size)] = MapSize,
 		[nameof(IPopup.VerticalOptions)] = MapSize,
 		[nameof(IPopup.HorizontalOptions)] = MapSize,

@@ -23,6 +23,11 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	public static readonly BindableProperty ColorProperty = BindableProperty.Create(nameof(Color), typeof(Color), typeof(Popup), Colors.LightGray, propertyChanged: OnColorChanged);
 
 	/// <summary>
+	///  Backing BindableProperty for the <see cref="BackgroundColor"/> property.
+	/// </summary>
+	public static readonly BindableProperty BackgroundColorProperty = BindableProperty.Create(nameof(Color), typeof(Color), typeof(Popup), Color.FromRgba(0,0,0,153), propertyChanged: OnColorChanged);
+
+	/// <summary>
 	/// Backing BindableProperty for the <see cref="IgnoreSafeArea"/> property.
 	/// </summary>
 	public static readonly BindableProperty IgnoreSafeAreaProperty = BindableProperty.Create(nameof(Color), typeof(bool), typeof(Popup), false);
@@ -117,6 +122,19 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	{
 		get => (Color)GetValue(ColorProperty);
 		set => SetValue(ColorProperty, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the <see cref="BackgroundColor"/> of the Popup.
+	/// </summary>
+	/// <remarks>
+	/// This color sets the background color of the <see cref="Popup"/> fullscreen overlay, which is
+	/// independent of any background color configured in the actual View.
+	/// </remarks>
+	public Color BackgroundColor
+	{
+		get => (Color)GetValue(BackgroundColorProperty);
+		set => SetValue(BackgroundColorProperty, value);
 	}
 
 	/// <summary>
@@ -365,6 +383,7 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 		RemoveBinding(Popup.IgnoreSafeAreaProperty);
 		RemoveBinding(Popup.ContentProperty);
 		RemoveBinding(Popup.ColorProperty);
+		RemoveBinding(Popup.BackgroundColorProperty);
 		RemoveBinding(Popup.SizeProperty);
 		RemoveBinding(Popup.CanBeDismissedByTappingOutsideOfPopupProperty);
 		RemoveBinding(Popup.VerticalOptionsProperty);
