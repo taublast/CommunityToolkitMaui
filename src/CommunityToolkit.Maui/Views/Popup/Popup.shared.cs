@@ -25,12 +25,12 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="BackgroundColor"/> property.
 	/// </summary>
-	public static readonly BindableProperty BackgroundColorProperty = BindableProperty.Create(nameof(Color), typeof(Color), typeof(Popup), Color.FromRgba(0,0,0,153), propertyChanged: OnColorChanged);
+	public static readonly BindableProperty BackgroundColorProperty = BindableProperty.Create(nameof(BackgroundColor), typeof(Color), typeof(Popup), Color.FromRgba(0,0,0,153), propertyChanged: OnColorChanged);
 
 	/// <summary>
 	/// Backing BindableProperty for the <see cref="IgnoreSafeArea"/> property.
 	/// </summary>
-	public static readonly BindableProperty IgnoreSafeAreaProperty = BindableProperty.Create(nameof(Color), typeof(bool), typeof(Popup), false);
+	public static readonly BindableProperty IgnoreSafeAreaProperty = BindableProperty.Create(nameof(IgnoreSafeArea), typeof(bool), typeof(Popup), false);
 	
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="Size"/> property.

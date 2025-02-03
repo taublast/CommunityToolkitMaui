@@ -143,21 +143,13 @@ public static partial class PopupExtensions
 
 	static void CreateAndShowPopup<TPopup>(Page page, TPopup popup) where TPopup : Popup
 	{
-#if WINDOWS
-		PlatformShowPopup(popup, GetMauiContext(page));
-#else
 		CreatePopup(page, popup);
-#endif
 	}
 
 	static Task<object?> CreateAndShowPopupAsync<TPopup>(this Page page, TPopup popup, CancellationToken token) where TPopup : Popup
 	{
-#if WINDOWS
-		return PlatformShowPopupAsync(popup, GetMauiContext(page), token);
-#else
 		CreatePopup(page, popup);
 
 		return popup.Result.WaitAsync(token);
-#endif
 	}
 }
