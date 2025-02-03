@@ -171,7 +171,7 @@ public static class PopupExtensions
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedLeft;
 			mauiPopup.PopupView.HorizontalOffset = horizontalStart; 
-			mauiPopup.PopupView.VerticalOffset = 0;
+			mauiPopup.PopupView.VerticalOffset = verticalStart;
 		}
 		else if (IsTop(verticalOptions, horizontalOptions))
 		{
@@ -183,7 +183,7 @@ public static class PopupExtensions
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedRight;
 			mauiPopup.PopupView.HorizontalOffset = horizontalEnd;//(popupParentFrame.Width + popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier;
-			mauiPopup.PopupView.VerticalOffset = 0;
+			mauiPopup.PopupView.VerticalOffset = verticalStart;
 		}
 		else if (IsRight(verticalOptions, horizontalOptions))
 		{
@@ -300,7 +300,7 @@ public static class PopupExtensions
 		if (platformWindow.AppWindow.TitleBar != null)
 		{
 			var scale = platformWindow.AppWindow.Size.Width / platformWindow.Bounds.Width;
-			topOffset = (int)(platformWindow.AppWindow.TitleBar.Height / scale + 4) ; 
+			topOffset = (int)(platformWindow.AppWindow.TitleBar.Height / scale + 4);
 		}
 		return new (platformWindow.Bounds.X, topOffset, platformWindow.Bounds.Width, platformWindow.Bounds.Height - topOffset);
 	}
