@@ -153,6 +153,16 @@ public static class PopupExtensions
 
 		var verticalOptions = popup.VerticalOptions;
 		var horizontalOptions = popup.HorizontalOptions;
+
+		var center = 0;
+		var verticalCenter = popupParentFrame.Top / 2;
+
+		var horizontalEnd = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
+		var horizontalStart = -horizontalEnd;
+
+		var verticalStart = popupParentFrame.Top / 2 - (popupParentFrame.Height - contentSize.Height) / 2;
+		var verticalEnd = (popupParentFrame.Height - contentSize.Height + popupParentFrame.Top) / 2;
+
 		if (popup.Anchor is not null)
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Top;
@@ -160,104 +170,104 @@ public static class PopupExtensions
 		else if (IsTopLeft(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedLeft;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top;
+			mauiPopup.PopupView.HorizontalOffset = horizontalStart; 
+			mauiPopup.PopupView.VerticalOffset = 0;
 		}
 		else if (IsTop(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Top;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top;
+			mauiPopup.PopupView.HorizontalOffset = center; 
+			mauiPopup.PopupView.VerticalOffset = verticalStart;
 		}
 		else if (IsTopRight(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedRight;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width + popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top;
+			mauiPopup.PopupView.HorizontalOffset = horizontalEnd;//(popupParentFrame.Width + popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier;
+			mauiPopup.PopupView.VerticalOffset = 0;
 		}
 		else if (IsRight(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Right;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width + popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier;
-			mauiPopup.PopupView.VerticalOffset =  (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = horizontalEnd;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsBottomRight(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.BottomEdgeAlignedRight;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width + popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top + popupParentFrame.Height - contentSize.Height;
+			mauiPopup.PopupView.HorizontalOffset = horizontalEnd;
+			mauiPopup.PopupView.VerticalOffset = verticalEnd;
 		}
 		else if (IsBottom(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Bottom;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top + popupParentFrame.Height - contentSize.Height;
+			mauiPopup.PopupView.HorizontalOffset = center;
+			mauiPopup.PopupView.VerticalOffset = verticalEnd;
 		}
 		else if (IsBottomLeft(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.BottomEdgeAlignedLeft;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top + popupParentFrame.Height - contentSize.Height;
+			mauiPopup.PopupView.HorizontalOffset = verticalStart;
+			mauiPopup.PopupView.VerticalOffset = verticalEnd;
 		}
 		else if (IsLeft(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Left;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = horizontalStart;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsCenter(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = center;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsFillLeft(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = horizontalStart;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsFillCenter(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = center;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsFillRight(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width + popupParentFrame.Width * horizontalOptionsPositiveNegativeMultiplier) / 2 - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = horizontalEnd;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsTopFill(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top;
+			mauiPopup.PopupView.HorizontalOffset = center;
+			mauiPopup.PopupView.VerticalOffset = verticalStart;
 		}
 		else if (IsCenterFill(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = 0;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else if (IsBottomFill(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = popupParentFrame.Top + popupParentFrame.Height - contentSize.Height;
+			mauiPopup.PopupView.HorizontalOffset = 0;
+			mauiPopup.PopupView.VerticalOffset = verticalEnd;
 		}
 		else if (IsFill(verticalOptions, horizontalOptions))
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = 0;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 		else
 		{
 			mauiPopup.PopupView.DesiredPlacement = PopupPlacementMode.Auto;
-			mauiPopup.PopupView.HorizontalOffset = (popupParentFrame.Width - contentSize.Width * horizontalOptionsPositiveNegativeMultiplier) / 2;
-			mauiPopup.PopupView.VerticalOffset = (popupParentFrame.Top + popupParentFrame.Height - contentSize.Height) / 2;
+			mauiPopup.PopupView.HorizontalOffset = 0;
+			mauiPopup.PopupView.VerticalOffset = verticalCenter;
 		}
 
 		static bool IsTopLeft(LayoutAlignment verticalOptions, LayoutAlignment horizontalOptions) => verticalOptions == LayoutAlignment.Start && horizontalOptions == LayoutAlignment.Start;
@@ -290,7 +300,7 @@ public static class PopupExtensions
 		if (platformWindow.AppWindow.TitleBar != null)
 		{
 			var scale = platformWindow.AppWindow.Size.Width / platformWindow.Bounds.Width;
-			topOffset = (int)(platformWindow.AppWindow.TitleBar.Height / scale);
+			topOffset = (int)(platformWindow.AppWindow.TitleBar.Height / scale + 4) ; 
 		}
 		return new (platformWindow.Bounds.X, topOffset, platformWindow.Bounds.Width, platformWindow.Bounds.Height - topOffset);
 	}

@@ -104,7 +104,7 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
 	public static void MapSize(PopupHandler handler, IPopup view)
 	{
-		handler.PlatformView.SetSize(view, handler.MauiContext);
+		handler.PlatformView.Layout();
 	}
 
 	/// <inheritdoc/>

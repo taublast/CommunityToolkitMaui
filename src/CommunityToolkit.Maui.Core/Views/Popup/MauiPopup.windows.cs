@@ -171,12 +171,20 @@ public partial class MauiPopup : Grid
 	/// </summary>
 	public void OnSizeChanged(object? sender, object e)
 	{
+		UpdateLayout();
+	}
+
+	/// <summary>
+	/// Measure and layout popup
+	/// </summary>
+	public void Layout()
+	{
 		if (VirtualView is not null)
 		{
 			PopupExtensions.SetSize(this, VirtualView, mauiContext);
 			PopupExtensions.SetLayout(this, VirtualView, mauiContext);
 		}
-	}
+	}		
 
 	/// <summary>
 	/// An instance of the <see cref="IPopup"/>.
