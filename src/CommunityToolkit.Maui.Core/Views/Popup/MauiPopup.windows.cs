@@ -1,5 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Windows.UI.ViewManagement;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -73,7 +74,8 @@ public partial class MauiPopup : Grid
 			IsLightDismissEnabled = false
 		};
 
-		Children.Add(PopupView);
+		// Don't add PopupView to Children - we'll manage it differently
+		// Children.Add(PopupView);
 	}
 
 	/// <summary>
@@ -87,10 +89,17 @@ public partial class MauiPopup : Grid
 			PopupView.IsOpen = false;
 			PopupView.Closed -= OnClosed;
 
-			var window = mauiContext.GetPlatformWindow();
-			if (window.Content is Panel rootPanel)
+			try
 			{
-				rootPanel.Children.Remove(this);
+				var window = mauiContext.GetPlatformWindow();
+				if (window.Content is Panel rootPanel)
+				{
+					rootPanel.Children.Remove(this);
+				}
+			}
+			catch (Exception e)
+			{
+				Trace.WriteLine(e);
 			}
 
 			VirtualView = null;
@@ -100,13 +109,49 @@ public partial class MauiPopup : Grid
 				Content.SizeChanged -= OnSizeChanged;
 				Content = null;
 			}
-			
+
 			return null;
 		}
 
 		VirtualView = element;
 
-		var backgroundColor = VirtualView.BackgroundColor.ToWindowsColor();
+		if (TryCreateContent(VirtualView, out var mauiContent))
+		{
+			// NEW APPROACH: Create a composite popup content that includes both overlay and content
+			var compositeContent = CreateCompositePopupContent(mauiContent);
+
+			PopupView.Child = compositeContent;
+			Content = mauiContent; // Keep reference to the actual content
+			mauiContent.SizeChanged += OnSizeChanged;
+			PopupView.Closed += OnClosed;
+		}
+
+		return mauiContent;
+	}
+
+	/// <summary>
+	/// Creates a composite popup content that includes both the full-screen overlay and the actual popup content.
+	/// This ensures the overlay is part of the WinUI Popup and can darken existing popups.
+	/// </summary>
+	/// <param name="actualContent">The actual popup content.</param>
+	/// <returns>A Grid containing both overlay and content.</returns>
+	FrameworkElement CreateCompositePopupContent(FrameworkElement actualContent)
+	{
+		// Create a full-screen container
+		var container = new Grid
+		{
+			HorizontalAlignment = HorizontalAlignment.Stretch,
+			VerticalAlignment = VerticalAlignment.Stretch
+		};
+
+		if (VirtualView == null)
+		{
+			return container;
+		}
+
+
+		// Create the full-screen overlay
+		var backgroundColor = VirtualView.OverlayColor.ToWindowsColor();
 		overlay = new BackgroundDimmer(() =>
 		{
 			if (CanBeDismissedByTappingOutside)
@@ -115,25 +160,21 @@ public partial class MauiPopup : Grid
 			}
 		})
 		{
-			Background = new SolidColorBrush(backgroundColor), 
+			Background = new SolidColorBrush(backgroundColor),
 			HorizontalAlignment = HorizontalAlignment.Stretch,
 			VerticalAlignment = VerticalAlignment.Stretch
 		};
 
-		//todo animate overlay fade-in
-		Children.Insert(0, overlay);
+		// Add overlay first (behind content)
+		container.Children.Add(overlay);
 
-		if (TryCreateContent(VirtualView, out var mauiContent))
-		{
+		// Add actual content on top of overlay
+		container.Children.Add(actualContent);
 
-			PopupView.Child = mauiContent;
-			Content = mauiContent;
-			mauiContent.SizeChanged += OnSizeChanged;
-			PopupView.Closed += OnClosed;
-		}
-
-		return mauiContent;
+		return container;
 	}
+
+
 
 	/// <summary>
 	/// Opens the popup and shows the dimmer.
@@ -146,6 +187,9 @@ public partial class MauiPopup : Grid
 			if (window.Content is Panel rootPanel)
 			{
 				attached = true;
+				// Simple approach: just add to the end of the root panel
+				// The overlay is now part of the popup content, so it will automatically
+				// cover everything that was visible before this popup opened
 				rootPanel.Children.Add(this);
 			}
 		}
@@ -156,6 +200,7 @@ public partial class MauiPopup : Grid
 		_ = VirtualView ?? throw new InvalidOperationException($"{nameof(VirtualView)} cannot be null");
 		VirtualView.OnOpened();
 	}
+
 
 
 	void OnClosed(object? sender, object e)

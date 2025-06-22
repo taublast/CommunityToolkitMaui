@@ -10,57 +10,68 @@ namespace CommunityToolkit.Maui.Views;
 /// Represents a small View that pops up at front the Page. Implements <see cref="IPopup"/>.
 /// </summary>
 [ContentProperty(nameof(Content))]
-public partial class Popup : Element, IPopup, IWindowController, IPropertyPropagationController, IResourcesProvider, IStyleSelectable, IStyleElement
+public partial class Popup : Element, IPopup, IWindowController, IPropertyPropagationController, IResourcesProvider,
+	IStyleSelectable, IStyleElement
 {
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="Content"/> property.
 	/// </summary>
-	public static readonly BindableProperty ContentProperty = BindableProperty.Create(nameof(Content), typeof(View), typeof(Popup), propertyChanged: OnContentChanged);
+	public static readonly BindableProperty ContentProperty = BindableProperty.Create(nameof(Content), typeof(View),
+		typeof(Popup), propertyChanged: OnContentChanged);
 
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="Color"/> property.
 	/// </summary>
-	public static readonly BindableProperty ColorProperty = BindableProperty.Create(nameof(Color), typeof(Color), typeof(Popup), Colors.LightGray, propertyChanged: OnColorChanged);
+	public static readonly BindableProperty ColorProperty = BindableProperty.Create(nameof(Color), typeof(Color),
+		typeof(Popup), Colors.LightGray, propertyChanged: OnColorChanged);
 
 	/// <summary>
-	///  Backing BindableProperty for the <see cref="BackgroundColor"/> property.
+	///  Backing BindableProperty for the <see cref="OverlayColor"/> property.
 	/// </summary>
-	public static readonly BindableProperty BackgroundColorProperty = BindableProperty.Create(nameof(BackgroundColor), typeof(Color), typeof(Popup), Color.FromRgba(0,0,0,153), propertyChanged: OnColorChanged);
+	public static readonly BindableProperty OverlayColorProperty = BindableProperty.Create(nameof(OverlayColor),
+		typeof(Color), typeof(Popup), Color.FromRgba(1, 0, 0, 153), propertyChanged: OnColorChanged);
 
 	/// <summary>
 	/// Backing BindableProperty for the <see cref="IgnoreSafeArea"/> property.
 	/// </summary>
-	public static readonly BindableProperty IgnoreSafeAreaProperty = BindableProperty.Create(nameof(IgnoreSafeArea), typeof(bool), typeof(Popup), false);
-	
+	public static readonly BindableProperty IgnoreSafeAreaProperty =
+		BindableProperty.Create(nameof(IgnoreSafeArea), typeof(bool), typeof(Popup), false);
+
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="Size"/> property.
 	/// </summary>
-	public static readonly BindableProperty SizeProperty = BindableProperty.Create(nameof(Size), typeof(Size), typeof(Popup), default(Size));
+	public static readonly BindableProperty SizeProperty =
+		BindableProperty.Create(nameof(Size), typeof(Size), typeof(Popup), default(Size));
 
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="CanBeDismissedByTappingOutsideOfPopup"/> property.
 	/// </summary>
-	public static readonly BindableProperty CanBeDismissedByTappingOutsideOfPopupProperty = BindableProperty.Create(nameof(CanBeDismissedByTappingOutsideOfPopup), typeof(bool), typeof(Popup), true);
+	public static readonly BindableProperty CanBeDismissedByTappingOutsideOfPopupProperty =
+		BindableProperty.Create(nameof(CanBeDismissedByTappingOutsideOfPopup), typeof(bool), typeof(Popup), true);
 
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="VerticalOptions"/> property.
 	/// </summary>
-	public static readonly BindableProperty VerticalOptionsProperty = BindableProperty.Create(nameof(VerticalOptions), typeof(LayoutAlignment), typeof(Popup), LayoutAlignment.Center);
+	public static readonly BindableProperty VerticalOptionsProperty = BindableProperty.Create(nameof(VerticalOptions),
+		typeof(LayoutAlignment), typeof(Popup), LayoutAlignment.Center);
 
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="HorizontalOptions"/> property.
 	/// </summary>
-	public static readonly BindableProperty HorizontalOptionsProperty = BindableProperty.Create(nameof(HorizontalOptions), typeof(LayoutAlignment), typeof(Popup), LayoutAlignment.Center);
+	public static readonly BindableProperty HorizontalOptionsProperty =
+		BindableProperty.Create(nameof(HorizontalOptions), typeof(LayoutAlignment), typeof(Popup),
+			LayoutAlignment.Center);
 
 	/// <summary>
 	///  Backing BindableProperty for the <see cref="Style" /> property. 
 	/// </summary>
-	public static readonly BindableProperty StyleProperty = BindableProperty.Create(nameof(Style), typeof(Style), typeof(Popup), default(Style), propertyChanged: (bindable, oldValue, newValue) => ((Popup)bindable).mergedStyle.Style = (Style)newValue);
+	public static readonly BindableProperty StyleProperty = BindableProperty.Create(nameof(Style), typeof(Style),
+		typeof(Popup), default(Style),
+		propertyChanged: (bindable, oldValue, newValue) => ((Popup)bindable).mergedStyle.Style = (Style)newValue);
 
 	readonly WeakEventManager dismissWeakEventManager = new();
 	readonly WeakEventManager openedWeakEventManager = new();
 	readonly MergedStyle mergedStyle;
-
 	TaskCompletionSource popupDismissedTaskCompletionSource = new();
 	TaskCompletionSource<object?> resultTaskCompletionSource = new();
 	ResourceDictionary resources = [];
@@ -125,16 +136,16 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	}
 
 	/// <summary>
-	/// Gets or sets the <see cref="BackgroundColor"/> of the Popup.
+	/// Gets or sets the <see cref="OverlayColor"/> of the Popup.
 	/// </summary>
 	/// <remarks>
 	/// This color sets the background color of the <see cref="Popup"/> fullscreen overlay, which is
 	/// independent of any background color configured in the actual View.
 	/// </remarks>
-	public Color BackgroundColor
+	public Color OverlayColor
 	{
-		get => (Color)GetValue(BackgroundColorProperty);
-		set => SetValue(BackgroundColorProperty, value);
+		get => (Color)GetValue(OverlayColorProperty);
+		set => SetValue(OverlayColorProperty, value);
 	}
 
 	/// <summary>
@@ -351,10 +362,12 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 					{
 						mergedClassStyles.AddRange(parentStyle);
 					}
+
 					changedResources.Add(new KeyValuePair<string, object>(keyValuePair.Key, mergedClassStyles));
 				}
 			}
 		}
+
 		if (changedResources.Count != 0)
 		{
 			OnResourcesChanged(changedResources);
@@ -373,7 +386,8 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	/// <param name="result">Sets the <see cref="PopupClosedEventArgs"/> Property of <see cref="PopupClosedEventArgs.Result"/>.</param>
 	/// <param name="wasDismissedByTappingOutsideOfPopup">Sets the <see cref="PopupClosedEventArgs"/> Property of <see cref="PopupClosedEventArgs.WasDismissedByTappingOutsideOfPopup"/>/>.</param>
 	/// <param name="token"><see cref="CancellationToken"/></param>
-	protected virtual async Task OnClosed(object? result, bool wasDismissedByTappingOutsideOfPopup, CancellationToken token = default)
+	protected virtual async Task OnClosed(object? result, bool wasDismissedByTappingOutsideOfPopup,
+		CancellationToken token = default)
 	{
 		token.ThrowIfCancellationRequested();
 
@@ -383,7 +397,7 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 		RemoveBinding(Popup.IgnoreSafeAreaProperty);
 		RemoveBinding(Popup.ContentProperty);
 		RemoveBinding(Popup.ColorProperty);
-		RemoveBinding(Popup.BackgroundColorProperty);
+		RemoveBinding(Popup.OverlayColorProperty);
 		RemoveBinding(Popup.SizeProperty);
 		RemoveBinding(Popup.CanBeDismissedByTappingOutsideOfPopupProperty);
 		RemoveBinding(Popup.VerticalOptionsProperty);
@@ -394,7 +408,8 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 
 		Parent?.RemoveLogicalChild(this);
 
-		dismissWeakEventManager.HandleEvent(this, new PopupClosedEventArgs(result, wasDismissedByTappingOutsideOfPopup), nameof(Closed));
+		dismissWeakEventManager.HandleEvent(this, new PopupClosedEventArgs(result, wasDismissedByTappingOutsideOfPopup),
+			nameof(Closed));
 	}
 
 	/// <summary>
@@ -437,13 +452,35 @@ public partial class Popup : Element, IPopup, IWindowController, IPropertyPropag
 	}
 
 	void IPopup.OnClosed(object? result) => Handler?.Invoke(nameof(IPopup.OnClosed), result);
-
 	void IPopup.OnOpened() => OnOpened();
 
-	async void IPopup.OnDismissedByTappingOutsideOfPopup() => await OnDismissedByTappingOutsideOfPopup(CancellationToken.None);
+	async void IPopup.OnDismissedByTappingOutsideOfPopup() =>
+		await OnDismissedByTappingOutsideOfPopup(CancellationToken.None);
 
-	void IPropertyPropagationController.PropagatePropertyChanged(string propertyName) =>
-		PropertyPropagationExtensions.PropagatePropertyChanged(propertyName, this, ((IVisualTreeElement)this).GetVisualChildren());
+	void IPropertyPropagationController.PropagatePropertyChanged(string propertyName)
+	{
+		try
+		{
+			var children = ((IVisualTreeElement)this).GetVisualChildren();
+			PropertyPropagationExtensions.PropagatePropertyChanged(propertyName, this, children);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
+	}
 
-	IReadOnlyList<IVisualTreeElement> IVisualTreeElement.GetVisualChildren() => Content is null ? [] : [Content];
+	IReadOnlyList<IVisualTreeElement> IVisualTreeElement.GetVisualChildren()
+	{
+		try
+		{
+			return Content is null ? [] : [Content];
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
+
+		return [];
+	}
 }

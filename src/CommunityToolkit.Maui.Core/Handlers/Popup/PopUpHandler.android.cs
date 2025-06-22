@@ -19,9 +19,14 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
 	/// <param name="result">The result that should return from this Popup.</param>
-	public static void MapOnClosed(PopupHandler handler, IPopup view, object? result)
+	public static void MapOnClosed(PopupHandler? handler, IPopup view, object? result)
 	{
-		var popup = handler.PlatformView;
+		var popup = handler?.PlatformView;
+
+		if (popup == null || popup.IsDisposed() || popup.Context.IsDisposed())
+		{
+			return;
+		}
 
 		if (!popup.Context.GetActivity().IsDestroyed())
 		{
@@ -33,7 +38,7 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 
 		view.HandlerCompleteTCS.TrySetResult();
 
-		handler.DisconnectHandler(popup);
+		handler?.DisconnectHandler(popup);
 	}
 
 	/// <summary>
@@ -92,7 +97,7 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	}
 
 	/// <summary>
-	/// Action that's triggered when the Popup <see cref="IPopup.BackgroundColor"/> property changes.
+	/// Action that's triggered when the Popup <see cref="IPopup.OverlayColor"/> property changes.
 	/// </summary>
 	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
@@ -108,10 +113,11 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>
 	public static void MapSize(PopupHandler handler, IPopup view)
 	{
-		ArgumentNullException.ThrowIfNull(handler.Content);
-
-		handler.PlatformView.SetFullScreen(view.IgnoreSafeArea);
-		handler.PlatformView.SetSize(view, handler.Content, handler);
+		if (handler.Content != null)
+		{
+			handler.PlatformView.SetFullScreen(view.IgnoreSafeArea);
+			handler.PlatformView.SetSize(view, handler.Content, handler);
+		}
 	}
 
 	/// <inheritdoc/>

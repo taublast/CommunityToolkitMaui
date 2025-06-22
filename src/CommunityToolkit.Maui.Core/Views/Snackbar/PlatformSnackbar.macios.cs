@@ -54,9 +54,13 @@ public class PlatformSnackbar : PlatformToast
 	/// <summary>
 	/// Text Displayed on Action Button
 	/// </summary>
-	public string ActionButtonText
+	public string? ActionButtonText
 	{
-		get => actionButton.Title(UIControlState.Normal);
+		get
+		{
+			return actionButton.Title(UIControlState.Normal);
+		}
+
 		private init => actionButton.SetTitle(value, UIControlState.Normal);
 	}
 

@@ -21,7 +21,7 @@ public interface IPopup : IElement, IVisualTreeElement, IAsynchronousHandler
 	/// <summary>
 	/// Gets the color of the fullscreen overlay.
 	/// </summary>
-	Color BackgroundColor { get; }
+	Color OverlayColor { get; }
 
 	/// <summary>
 	/// Gets the Popup's Content.

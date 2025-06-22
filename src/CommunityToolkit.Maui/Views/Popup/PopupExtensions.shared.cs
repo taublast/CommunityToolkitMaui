@@ -131,8 +131,15 @@ public static partial class PopupExtensions
 		var parent = page.GetCurrentPage();
 		parent?.AddLogicalChild(popup);
 
-		var platformPopup = popup.ToHandler(mauiContext);
-		platformPopup.Invoke(nameof(IPopup.OnOpened));
+		try
+		{
+			var platformPopup = popup.ToHandler(mauiContext);
+			platformPopup.Invoke(nameof(IPopup.OnOpened));
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CommunityToolkit.Maui.Core.Views;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
@@ -15,14 +16,21 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	/// <param name="result">The result that should return from this Popup.</param>
 	public static void MapOnClosed(PopupHandler handler, IPopup view, object? result)
 	{
-		var window = view.GetWindow();
-		if (window.Overlays.FirstOrDefault() is IWindowOverlay popupOverlay)
+		try
 		{
-			window.RemoveOverlay(popupOverlay);
-		}
+			var window = view.GetWindow();
+			if (window.Overlays.FirstOrDefault() is IWindowOverlay popupOverlay)
+			{
+				window.RemoveOverlay(popupOverlay);
+			}
 
-		view.HandlerCompleteTCS.TrySetResult();
-		handler.DisconnectHandler(handler.PlatformView);
+			view.HandlerCompleteTCS.TrySetResult();
+			handler.DisconnectHandler(handler.PlatformView);
+		}
+		catch (Exception e)
+		{
+			Trace.WriteLine(e);
+		}
 	}
 
 	/// <summary>
@@ -88,7 +96,7 @@ public partial class PopupHandler : ElementHandler<IPopup, MauiPopup>
 	}
 
 	/// <summary>
-	/// Action that's triggered when the Popup <see cref="IPopup.BackgroundColor"/> property changes.
+	/// Action that's triggered when the Popup <see cref="IPopup.OverlayColor"/> property changes.
 	/// </summary>
 	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>

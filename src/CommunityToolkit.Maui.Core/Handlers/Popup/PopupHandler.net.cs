@@ -69,7 +69,7 @@ public partial class PopupHandler : Microsoft.Maui.Handlers.ElementHandler<IPopu
 	}
 
 	/// <summary>
-	/// Action that's triggered when the Popup <see cref="IPopup.BackgroundColor"/> property changes.
+	/// Action that's triggered when the Popup <see cref="IPopup.OverlayColor"/> property changes.
 	/// </summary>
 	/// <param name="handler">An instance of <see cref="PopupHandler"/>.</param>
 	/// <param name="view">An instance of <see cref="IPopup"/>.</param>

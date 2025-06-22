@@ -27,25 +27,18 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <GitInfoReportImportance>high</GitInfoReportImportance>
-    <PackageId>CommunityToolkit.Maui</PackageId>
-    <Summary>Community-created toolkit for .NET MAUI containing a collection of Animations, Behaviors, Converters, and Custom Views</Summary>
-    <Authors>Microsoft</Authors>
-    <Owners>Microsoft</Owners>
+    <PackageId>AppoMobi.Preview.CommunityToolkit.Maui</PackageId>
+    <Authors>Microsoft and contributors</Authors>
     <NeutralLanguage>en</NeutralLanguage>
-    <Product>CommunityToolkit.Maui ($(NetVersion))</Product>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Copyright>© Microsoft Corporation and contributors.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CommunityToolkit/Maui</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/CommunityToolkit/Maui</RepositoryUrl>
-    <PackageReleaseNotes>See https://github.com/CommunityToolkit/Maui/releases</PackageReleaseNotes>
     <DefineConstants>$(DefineConstants);</DefineConstants>
     <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
-    <Title>CommunityToolkit.Maui</Title>
+    <Title>Modified CommunityToolkit.Maui</Title>
     <Description>The .NET MAUI Community Toolkit is a collection of Animations, Behaviors, Converters, and Custom Views for development with .NET MAUI. It simplifies and demonstrates common developer tasks building iOS, Android, macOS and Windows apps with .NET MAUI.</Description>
     <PackageIcon>icon.png</PackageIcon>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>1.0.0-pre1</Version>
+    <Version>1.1.1-pre1</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>dotnet,maui,toolkit,kit,communitytoolkit,dotnetcommunitytoolkit</PackageTags>
@@ -69,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="[$(MauiPackageVersion),$(NextMauiPackageVersion))"/>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30"/>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" Condition=" '$(Configuration)'=='Release' " PrivateAssets="All" />
   </ItemGroup>
 

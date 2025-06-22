@@ -18,7 +18,7 @@ public static class PopupExtensions
 {
 
 	/// <summary>
-	/// Method to update the <see cref="Maui.Core.IPopup.BackgroundColor"/>
+	/// Method to update the <see cref="Maui.Core.IPopup.OverlayColor"/>
 	/// </summary>
 	/// <param name="mauiPopup">An instance of <see cref="Popup"/>.</param>
 	/// <param name="popup">An instance of <see cref="Maui.Core.IPopup"/>.</param>
@@ -26,7 +26,7 @@ public static class PopupExtensions
 	{
 		if (mauiPopup.Overlay != null)
 		{
-			mauiPopup.Overlay.Background = new SolidColorBrush(popup.BackgroundColor.ToWindowsColor());
+			mauiPopup.Overlay.Background = new SolidColorBrush(popup.OverlayColor.ToWindowsColor());
 		}
 	}
 

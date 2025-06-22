@@ -167,7 +167,7 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 			overlay = new UIView(this.View.Bounds)
 			{
 				AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
-				BackgroundColor = virtualView.BackgroundColor.ToPlatform()
+				BackgroundColor = virtualView.OverlayColor.ToPlatform()
 			};
 
 			if (virtualView.CanBeDismissedByTappingOutsideOfPopup)
@@ -187,6 +187,10 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 				overlay.AddGestureRecognizer(tapGesture);
 			}
 
+			// iOS fix: Insert overlay at index 0 (behind content)
+			// Since each popup is a separate UIViewController presented modally,
+			// this overlay will be part of the current popup and will automatically
+			// appear above all previously presented popups
 			this.View.InsertSubview(overlay, 0);
 		}
 
@@ -215,5 +219,7 @@ public class MauiPopup(IMauiContext mauiContext) : UIViewController
 	{
 		viewController.PresentViewController(this, true, null);
 	}
+
+
 
 }

@@ -95,7 +95,7 @@ public static class PopupExtensions
 	}
 
 	/// <summary>
-	/// Method to update the <see cref="IPopup.BackgroundColor"/> property.
+	/// Method to update the <see cref="IPopup.OverlayColor"/> property.
 	/// </summary>
 	/// <param name="dialog">An instance of <see cref="Dialog"/>.</param>
 	/// <param name="popup">An instance of <see cref="IPopup"/>.</param>
@@ -103,7 +103,7 @@ public static class PopupExtensions
 	{
 		if (dialog.Overlay != null)
 		{
-			var color = popup.BackgroundColor ?? Colors.Transparent;
+			var color = popup.OverlayColor ?? Colors.Transparent;
 			dialog.Overlay.SetBackgroundColor(color.ToPlatform());
 		}
 	}

@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
+using Android.Widget;
 using Microsoft.Maui.Platform;
 using AView = Android.Views.View;
 
@@ -109,8 +110,53 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 
 		if (TryCreateContent(VirtualView, out var container))
 		{
+			// Android fix: Create composite content with overlay, similar to Windows approach
+			var compositeContainer = CreateCompositePopupContent(container);
+			SetContentView(compositeContainer);
+
 			SubscribeEvents();
+			return container; // Return original container for reference
 		}
+
+		return container;
+	}
+
+	/// <summary>
+	/// Creates a composite popup content that includes both the full-screen overlay and the actual popup content.
+	/// This ensures the overlay is part of the dialog and can darken existing popups.
+	/// </summary>
+	/// <param name="actualContent">The actual popup content.</param>
+	/// <returns>A FrameLayout containing both overlay and content.</returns>
+	AView CreateCompositePopupContent(AView actualContent)
+	{
+		// Create a full-screen container
+		var container = new FrameLayout(Context)
+		{
+			LayoutParameters = new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.MatchParent,
+				ViewGroup.LayoutParams.MatchParent)
+		};
+
+		if (VirtualView == null)
+		{ 
+			return container; 
+		}
+
+		// Create the full-screen overlay that will darken everything behind this dialog
+		overlay = new View(Context)
+		{
+			LayoutParameters = new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.MatchParent,
+				ViewGroup.LayoutParams.MatchParent)
+		};
+		var color = VirtualView.OverlayColor ?? Colors.Transparent;
+		overlay.SetBackgroundColor(color.ToPlatform());
+
+		// Add overlay first (behind content)
+		container.AddView(overlay);
+
+		// Add actual content on top of overlay
+		container.AddView(actualContent);
 
 		return container;
 	}
@@ -122,21 +168,8 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 	{
 		_ = VirtualView ?? throw new InvalidOperationException($"{nameof(VirtualView)} cannot be null");
 
-		var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-		var decor = activity?.Window?.DecorView as ViewGroup;
-		if (decor != null && overlay == null)
-		{
-			overlay = new View(Context)
-			{
-				LayoutParameters = new ViewGroup.LayoutParams(
-					ViewGroup.LayoutParams.MatchParent,
-					ViewGroup.LayoutParams.MatchParent)
-			};
-			var color = VirtualView.BackgroundColor ?? Colors.Transparent;
-			overlay.SetBackgroundColor(color.ToPlatform());
-			decor.AddView(overlay);
-		}
-
+		// Show the dialog popup - the overlay is now part of the dialog content
+		// so it will automatically darken everything that was visible before this dialog opened
 		base.Show();
 
 		VirtualView.OnOpened();
@@ -147,16 +180,8 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 	/// </summary>
 	public override void Dismiss()
 	{
-		if (overlay != null)
-		{
-			var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-			var decor = activity?.Window?.DecorView as ViewGroup;
-			if (decor != null && overlay != null)
-			{
-				decor.RemoveView(overlay);
-			}
-		}
-
+		// No need to manually remove overlay since it's part of the dialog content
+		// and will be cleaned up automatically when the dialog is dismissed
 		base.Dismiss();
 	}
 
@@ -218,7 +243,7 @@ public class MauiPopup : Dialog, IDialogInterfaceOnCancelListener
 		}
 
 		container = popup.Content.ToPlatform(mauiContext);
-		SetContentView(container);
+		// Don't call SetContentView here - it will be called in SetElement with composite content
 
 		return true;
 	}
