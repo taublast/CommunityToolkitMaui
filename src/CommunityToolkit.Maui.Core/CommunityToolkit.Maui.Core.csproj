@@ -26,11 +26,11 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <DefineConstants>$(DefineConstants);</DefineConstants>
     <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
-    <Title>Modified CommunityToolkit.Maui.Core</Title>
+    <Title>Modified CommunityToolkit.Maui.Core for enhanced POPUPS</Title>
     <Description>Core library for community toolkits using .NET MAUI</Description>
     <PackageIcon>icon.png</PackageIcon>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>1.1.1-pre1</Version>
+    <Version>1.1.2-pre1</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>dotnet,maui,toolkit,kit,communitytoolkit,dotnetcommunitytoolkit</PackageTags>
